@@ -1,35 +1,7 @@
 import { createProductWithVariants } from "@/domains/products/data-access";
 import { NextRequest, NextResponse } from "next/server";
 import { z } from "zod";
-
-const organizationEnumValues = [
-  "casa_de_los_suenos",
-  "trece_cerros",
-  "calienta_espiritus",
-] as const;
-
-const ProductVariantInputSchema = z.object({
-  name: z.string().min(1, "Nombre requerido"),
-  unitPrice: z.number().finite().positive("El precio debe ser mayor a 0"),
-});
-
-const ProductCreateInputSchema = z.object({
-  organization: z.enum(organizationEnumValues),
-  name: z.string().min(1, "Nombre requerido"),
-  variants: z
-    .array(ProductVariantInputSchema)
-    .min(1, "Debe haber al menos una variante"),
-});
-
-const ProductVariantOutputSchema = z.object({
-  id: z.string().uuid(),
-  productId: z.string().uuid(),
-  name: z.string(),
-  unitPrice: z.string(),
-  sku: z.number(),
-  createdAt: z.string(),
-  updatedAt: z.string(),
-});
+import { ProductCreateInputSchema } from "@/domains/products/product-schema";
 
 export async function POST(request: NextRequest) {
   try {

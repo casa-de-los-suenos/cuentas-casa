@@ -83,7 +83,7 @@ export default function ProductDialogForm(props: ProductDialogFormProps) {
 
   return (
     <Dialog open={open} onOpenChange={changeOpen}>
-      <DialogContent>
+      <DialogContent onPointerDownOutside={(e) => e.preventDefault()}>
         <DialogHeader>
           <DialogTitle>Crear producto</DialogTitle>
         </DialogHeader>
