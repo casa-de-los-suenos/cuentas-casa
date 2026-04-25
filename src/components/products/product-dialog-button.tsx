@@ -4,10 +4,10 @@ import { useProductDialog } from "@/providers/products/dialog";
 import { Button } from "../ui/button";
 
 export default function ProductDialogButton() {
-  const { changeOpen } = useProductDialog();
+  const { openForCreate } = useProductDialog();
 
   return (
-    <Button variant="outline" onClick={() => changeOpen(true)}>
+    <Button variant="outline" onClick={openForCreate}>
       Agregar producto
     </Button>
   );

@@ -1,5 +1,6 @@
 import { relations } from "drizzle-orm";
 import {
+  boolean,
   pgTable,
   text,
   timestamp,
@@ -14,6 +15,7 @@ export const products = pgTable(
     id: uuid("id").defaultRandom().primaryKey(),
     organization: organizationEnum("organization").notNull(),
     name: text("name").notNull(),
+    visible: boolean("visible").default(true).notNull(),
     createdAt: timestamp("created_at", { withTimezone: true })
       .defaultNow()
       .notNull(),

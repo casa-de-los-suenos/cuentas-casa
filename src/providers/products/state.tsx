@@ -12,6 +12,7 @@ export type ProductListItem = {
   id: string;
   organization: string;
   name: string;
+  visible?: boolean;
   variants: ProductVariantListItem[];
 };
 
@@ -19,6 +20,8 @@ type ProductsContextValue = {
   products: ProductListItem[];
   setProducts: React.Dispatch<React.SetStateAction<ProductListItem[]>>;
   addProduct: (created: ProductListItem) => void;
+  updateProduct: (updated: ProductListItem) => void;
+  removeProduct: (productId: string) => void;
 };
 
 const ProductsContext = createContext<ProductsContextValue | null>(null);
@@ -36,8 +39,22 @@ export function ProductsProvider({
     setProducts(prevProducts => [created, ...prevProducts]);
   };
 
+  const updateProduct = (updated: ProductListItem) => {
+    setProducts(prevProducts =>
+      prevProducts.map(product =>
+        product.id === updated.id ? updated : product
+      )
+    );
+  };
+
+  const removeProduct = (productId: string) => {
+    setProducts(prevProducts =>
+      prevProducts.filter(product => product.id !== productId)
+    );
+  };
+
   const value = useMemo<ProductsContextValue>(
-    () => ({ products, setProducts, addProduct }),
+    () => ({ products, setProducts, addProduct, updateProduct, removeProduct }),
     [products]
   );
 

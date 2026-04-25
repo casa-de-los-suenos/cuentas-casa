@@ -18,7 +18,7 @@ import {
   useForm,
 } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { useMemo } from "react";
+import { useEffect, useMemo } from "react";
 import { NumericFormat } from "react-number-format";
 import { useProductDialog } from "@/providers/products/dialog";
 import { ProductCreateInput } from "@/domains/products/types";
@@ -27,26 +27,22 @@ import { ProductCreateInputSchema } from "@/domains/products/product-schema";
 import { Trash2 } from "lucide-react";
 import { cn } from "@/lib/utils";
 
-type ProductDialogFormProps = {
-  trigger?: React.ReactNode;
-  initialValues?: Partial<ProductCreateInput>;
-};
+export default function ProductDialogForm() {
+  const { open, mode, editingProduct, changeOpen, saveProduct } =
+    useProductDialog();
 
-export default function ProductDialogForm(props: ProductDialogFormProps) {
-  const { initialValues } = props;
-  const { open, changeOpen, createProduct } = useProductDialog();
-
-  const defaultValues: ProductCreateInput = useMemo(
+  const emptyDefaults: ProductCreateInput = useMemo(
     () => ({
-      organization: initialValues?.organization ?? "casa_de_los_suenos",
-      name: initialValues?.name ?? "",
-      variants:
-        initialValues?.variants && initialValues.variants.length > 0
-          ? initialValues.variants
-          : [{ name: "", unitPrice: 0 }],
+      organization: "casa_de_los_suenos",
+      name: "",
+      variants: [{ name: "", unitPrice: 0 }],
     }),
-    [initialValues]
+    []
   );
+
+  const defaultValues = mode === "edit" && editingProduct
+    ? editingProduct
+    : emptyDefaults;
 
   const formMethods = useForm<ProductCreateInput>({
     resolver: zodResolver(ProductCreateInputSchema),
@@ -56,6 +52,12 @@ export default function ProductDialogForm(props: ProductDialogFormProps) {
 
   const { control, register, handleSubmit, formState, reset } = formMethods;
   const { errors, isSubmitting, isValid } = formState;
+
+  useEffect(() => {
+    if (open) {
+      reset(defaultValues);
+    }
+  }, [open, mode, editingProduct]);
 
   const {
     fields: variants,
@@ -68,24 +70,31 @@ export default function ProductDialogForm(props: ProductDialogFormProps) {
 
   const onSubmit = async (values: ProductCreateInput) => {
     try {
-      await createProduct(values);
-      reset(defaultValues);
+      await saveProduct(values);
+      reset(emptyDefaults);
     } catch (error) {
-      toast.error("Error al crear el producto");
+      toast.error(
+        mode === "edit"
+          ? "Error al actualizar el producto"
+          : "Error al crear el producto"
+      );
       console.error(error);
     }
   };
 
   const handleCancel = () => {
-    reset(defaultValues);
+    reset(emptyDefaults);
     changeOpen(false);
   };
 
+  const dialogTitle =
+    mode === "edit" ? "Editar producto" : "Crear producto";
+
   return (
     <Dialog open={open} onOpenChange={changeOpen}>
-      <DialogContent onPointerDownOutside={(e) => e.preventDefault()}>
+      <DialogContent onPointerDownOutside={(event) => event.preventDefault()}>
         <DialogHeader>
-          <DialogTitle>Crear producto</DialogTitle>
+          <DialogTitle>{dialogTitle}</DialogTitle>
         </DialogHeader>
 
         <FormProvider {...formMethods}>
