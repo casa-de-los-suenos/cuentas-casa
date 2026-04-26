@@ -21,19 +21,22 @@ export function getTodayRangeUtc(timeZone: string = getAppTimeZone()): {
 }
 
 /**
- * Interprets `fromIso` and `toIso` as **UTC calendar dates** (YYYY-MM-DD) and
- * returns a half-open [startUtc, endUtc) range in absolute time.
- * This matches how `timestamptz` values are compared to "the same day" in DB
- * tools that show UTC, so two `sold_at` on the same UTC date are not split
- * by America/Bogota (e.g. 03:08Z vs 22:39Z on 2026-04-25 both count for that day).
+ * Interprets `fromIso` and `toIso` as inclusive **calendar** dates (YYYY-MM-DD) in
+ * `timeZone` (e.g. business day in `APP_TIMEZONE`) and returns a half-open
+ * [startUtc, endUtc) range for querying `timestamptz` (e.g. `sold_at`).
  */
 export function dateRangeToUtc(
   fromIso: string,
-  toIso: string
+  toIso: string,
+  timeZone: string = getAppTimeZone()
 ): { startUtc: Date; endUtc: Date } {
-  const startUtc = new Date(`${fromIso}T00:00:00.000Z`);
-  const endExclusiveBase = new Date(`${toIso}T00:00:00.000Z`);
-  const endUtc = addDays(endExclusiveBase, 1);
+  const startUtc = fromZonedTime(`${fromIso}T00:00:00`, timeZone);
+
+  const toDayStartUtc = fromZonedTime(`${toIso}T00:00:00`, timeZone);
+  const toDayInBusinessZone = toZonedTime(toDayStartUtc, timeZone);
+  const startOfDayAfterToInZone = startOfDay(addDays(toDayInBusinessZone, 1));
+  const endUtc = fromZonedTime(startOfDayAfterToInZone, timeZone);
+
   return { startUtc, endUtc };
 }
 
